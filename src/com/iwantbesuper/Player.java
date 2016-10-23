@@ -1,5 +1,6 @@
 package com.iwantbesuper;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Player {
@@ -8,8 +9,8 @@ public class Player {
 	private int score;
 	private String username;
 	private String password;
-	List<Question> questions=null;
-	List<Answer> answers=null;
+	List<Question> questions=new ArrayList<>();
+	List<Answer> answers=new ArrayList<>();
 	
 	
 	
@@ -67,6 +68,10 @@ public class Player {
 	}
 	public int getScore() {
 		return score;
+	}
+
+	public void setScore(int score) {
+		this.score = score;
 	}
 
 	@Override

@@ -1,10 +1,10 @@
-package com.iwantbesuper;
+package com.iwantbesuper.util;
 
 import java.io.InputStream;
 import java.util.Scanner;
 
 public class Console {
-	 // private
+	 // private 保护不创建类的实例
     private static Scanner scanner;
     
     static {

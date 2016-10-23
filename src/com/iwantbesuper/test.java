@@ -4,7 +4,7 @@ import java.util.Scanner;
 
 public class test {
 	public static void main(String[] args) {
-		DatabaseConnection dc=new DatabaseConnection();
+		DatabaseDao dc=new DatabaseDao();
 		
 //		Scanner sc=new Scanner(System.in);
 //		System.out.println("请输入用户名：");
@@ -23,7 +23,7 @@ public class test {
 		String password=sc.nextLine();
 		 
 		Player player=new Player(name, username, password);
-		DatabaseConnection.signup(player);
+		DatabaseDao.signup(player);
 //		System.out.println(player.toString());
 		
 	}

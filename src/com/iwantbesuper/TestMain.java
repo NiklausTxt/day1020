@@ -23,6 +23,7 @@ public class TestMain {
 
 	public static void main(String[] args) {
 		Command start = new HelpCommand();
+		DatabaseDao.loadDriverClass();
 		start.excute();
 		while (true) {
 			String cmd = Console.askUserInput("cmd> ");

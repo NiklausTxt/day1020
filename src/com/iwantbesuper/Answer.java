@@ -46,5 +46,12 @@ public class Answer {
 	public void setId(int id) {
 		this.id = id;
 	}
+	@Override
+	public String toString() {
+		return "Answer [id=" + id + ", question_id=" + question_id + ", player_id=" + player_id
+				+ ", best=" + best+ ", value=" + value  + "]";
+	}
+	
+	
 	
 }

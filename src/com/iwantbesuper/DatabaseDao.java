@@ -127,6 +127,8 @@ public class DatabaseDao {
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}finally {
+			cleanup(conn, ps, rs);
 		}
 		return questions;
 		
@@ -162,6 +164,8 @@ public class DatabaseDao {
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}finally {
+			cleanup(conn, ps, rs);
 		}
 		return questions;
 	} 
@@ -194,6 +198,8 @@ public class DatabaseDao {
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}finally {
+			cleanup(conn, ps, rs);
 		}
 		return question;
 	}
@@ -227,8 +233,127 @@ public class DatabaseDao {
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}finally {
+			cleanup(conn, ps, rs);
 		}
 		return answers;
+	}
+	
+	public static Answer answerFrom(int aid){
+		Connection conn = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		String sql = "select * from answer where id = ?";
+		Answer answer=null; 
+		try {
+			conn=getConnection();
+			ps=conn.prepareStatement(sql);
+			ps.setInt(1, aid);
+			ps.executeQuery();
+			rs=ps.getResultSet();
+			while(rs.next()){
+				int id = rs.getInt("id");
+				String value = rs.getString("value");
+				boolean best = "Y".equals(rs.getString("best"));
+				int player_id = rs.getInt("player_id");
+				int question_id = rs.getInt("question_id");
+				answer = new Answer(id, value, question_id, player_id);
+				answer.setBest(best);
+				
+				
+			}
+			return answer;
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}finally {
+			cleanup(conn, ps, rs);
+		}
+		return answer;
+	}
+
+	public static List<Answer> answerFrom(Player player){
+		List<Answer> answers = new ArrayList<>();
+		String sql = "select * from answer where player_id = ? order by id";
+		Connection conn= null;
+		PreparedStatement ps=null;
+		ResultSet rs=null;
+		try {
+			conn=getConnection();
+			ps=conn.prepareStatement(sql);
+			ps.setInt(1, player.getId());
+			ps.executeQuery();
+			rs=ps.getResultSet();
+			while(rs.next()){
+				int id = rs.getInt("id");
+				String value = rs.getString("value");
+				boolean best = "Y".equals(rs.getString("best"));
+				int player_id = rs.getInt("player_id");
+				int question_id = rs.getInt("question_id");
+				Answer answer = new Answer(id, value, question_id, player_id);
+				answer.setBest(best);
+				
+				answers.add(answer);
+			}
+			
+			return answers;
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}finally {
+			cleanup(conn, ps, rs);
+		}
+		return answers;
+	}
+	
+	public static Player getPlayer(int pid){
+		String sql = "select * from player where id=?";
+		Connection conn= null;
+		PreparedStatement ps=null;
+		ResultSet rs=null;
+		Player player=null;
+		try {
+			conn=getConnection();
+			ps=conn.prepareStatement(sql);
+			ps.setInt(1, pid);
+			ps.executeQuery();
+			rs=ps.getResultSet();
+			while(rs.next()){
+				int id = rs.getInt("id");
+				String name = rs.getString("name");
+				int score = rs.getInt("score");
+				
+				player = new Player(id, name, score);
+				
+				
+			}
+			
+			return player;
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}finally {
+			cleanup(conn, ps, rs);
+		}
+		return player;
+	}
+	
+	public static void updatePlayer(Player player){
+		Connection conn=null;
+		PreparedStatement ps = null;
+		String updatePlayer = "UPDATE `iwantbesuper`.`player` SET `score`=? WHERE `id`=?";
+		
+		try {
+			conn=getConnection();
+			ps=conn.prepareStatement(updatePlayer);
+			ps.setInt(1, player.getScore());
+			ps.setInt(2, player.getId());
+			ps.execute();
+		} catch (SQLException e) {
+			e.printStackTrace();		
+		}finally {
+			cleanup(conn, ps, null);
+		}
 	}
 	
 	public static void askQuestion(Player player, String ques, int credit) {
@@ -329,11 +454,12 @@ public class DatabaseDao {
 			ps.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
+		}finally {
+			cleanup(conn, ps, rs);
 		}
 		
 	}
-	
-	
+		
 	public static void upsertAnswer(Answer answer){
 		Connection conn = null;
 		PreparedStatement ps = null;
@@ -359,8 +485,52 @@ public class DatabaseDao {
 			ps.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
+		}finally {
+			cleanup(conn, ps, rs);
 		}
 		
+	}
+	
+	public static void acceptAnswer(Question question,Answer answer,Player player){
+		Connection conn=null;
+		PreparedStatement ps1 = null;
+		PreparedStatement ps2 = null;
+		PreparedStatement ps3 = null;
+		String updateQuestion = "UPDATE `iwantbesuper`.`question` SET `isOpen`='N' WHERE `id`=?";
+		String updateAnswer = "UPDATE `iwantbesuper`.`answer` SET `best`='y' WHERE `id`=?";
+		String updatePlayer = "UPDATE `iwantbesuper`.`player` SET `score`=? WHERE `id`=?";
+		
+		try {
+			conn=getConnection();
+			conn.setAutoCommit(false);
+			
+			ps1=conn.prepareStatement(updateQuestion);
+			ps1.setInt(1, question.getId());
+			ps1.execute();
+			
+			ps2=conn.prepareStatement(updateAnswer);
+			ps2.setInt(1, answer.getId());
+			ps2.execute();
+			
+			ps3=conn.prepareStatement(updatePlayer);
+			ps3.setInt(1, player.getScore());
+			ps3.setInt(2, player.getId());
+			ps3.execute();
+			
+			conn.commit();			
+		} catch (SQLException e) {
+			
+			e.printStackTrace();
+			try {
+				conn.rollback();
+			} catch (SQLException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			
+		}finally {
+			cleanup(conn, ps1, null);
+		}
 	}
 	
 	public static int isBelong(int quesId, Player player) {
@@ -439,67 +609,22 @@ public class DatabaseDao {
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
+		}finally {
+			cleanup(conn, ps, rs);
 		}
 		return list;
 
 	}
 
-	public static int SelectBestAnswer(List<Integer> list, int bestId){
-		int flag=0;
-		for(int i:list){
-			if(i==bestId){
-				flag=1;
-			}
-		}
-		if(flag==0){
-			return -1;
-		}
-		String updateAnswer = "update answer set best = 'Y' where id=";
-		String updateQues = "update question set isOpen = 'N' where id=?";
-		
-		String sql="select * from answer,question,player where answer.player_id=player.id and answer.question_id=question.id and answer.id=?";
-		Connection conn=null;
-		Connection conn2=null;
-		PreparedStatement ps=null;
-		Statement stmt=null;
-		ResultSet rs=null;
-		try {
-			conn=getConnection();
-			ps=conn.prepareStatement(sql);
-			ps.setInt(1, bestId);
-			ps.executeQuery();
-			rs=ps.getResultSet();
-			while(rs.next()){
-				int quesId= rs.getInt("question.id");
-				int answerId= rs.getInt("answer.id");
-				int score = rs.getInt("player.score");
-				int playId = rs.getInt("player.id");
-				int credit = rs.getInt("question.credit");
-				int answerPlayerId = rs.getInt("answer.player_id");
-				int newscore = score-credit;
-				int newscore2 = score+credit;
-				stmt=conn.createStatement();
-				stmt.execute(updateQues+quesId);
-				stmt.execute(updateAnswer+answerId);
-				stmt.execute("update player set score = "+newscore+" where id = "+playId);
-//				stmt.execute("update player set score ="+ )
-			}
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		
-		
-		return 1;
-	}
+	
 	
 	private static Connection getConnection() {
-		loadDriverClass();
+//		loadDriverClass();
 		try {
 			String url = "jdbc:mysql://localhost:3306/iwantbesuper?useSSL=false";
 			String u = "root";
-			String p = "123456";
+//			String p = "123456";
+			String p = "niklaus1993";
 			return DriverManager.getConnection(url, u, p);
 		} catch (SQLException e) {
 			e.printStackTrace();

@@ -27,6 +27,8 @@ public class PlayerAskCommand extends PlayerCommand{
 		player.getQuestions().add(question);
 		player.setScore(player.getScore()-credit);
 		
+		DatabaseDao.updatePlayer(player);
+		
 		
 //		String question = Console.askUserInput("请输入提问的问题：");
 //		int credit =Integer.parseInt(Console.askUserInput("请输入问题的分值："));

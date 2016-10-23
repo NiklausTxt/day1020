@@ -12,13 +12,17 @@ public class Player {
 	List<Question> questions=new ArrayList<>();
 	List<Answer> answers=new ArrayList<>();
 	
-	
-	
-	
 	public Player() {
 		super();
 	}
 	
+	public Player(int id, String name, int score) {
+		super();
+		this.id = id;
+		this.name = name;
+		this.score = score;
+	}
+
 	public Player(String name, String username, String password) {
 		super();
 		this.name = name;
@@ -78,10 +82,5 @@ public class Player {
 	public String toString() {
 		return "Player [id=" + id + ", name=" + name + ", score=" + score + "]";
 	}
-	
-	
-	
 
-	
-	
 }
